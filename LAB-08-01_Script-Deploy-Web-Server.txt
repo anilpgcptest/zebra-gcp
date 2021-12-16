@@ -1,0 +1,35 @@
+# Set execution policy
+Set-ExecutionPolicy Unrestricted -Force
+New-Item -ItemType directory -Path 'C:\temp'
+
+# Install IIS and Web Management Tools.
+Enable-WindowsOptionalFeature -Online -FeatureName IIS-WebServerRole
+Enable-WindowsOptionalFeature -Online -FeatureName IIS-WebServer
+Enable-WindowsOptionalFeature -Online -FeatureName IIS-ApplicationDevelopment
+Enable-WindowsOptionalFeature -Online -FeatureName IIS-IIS6ManagementCompatibility
+Enable-WindowsOptionalFeature -Online -FeatureName IIS-ASPNet45 -All
+Enable-WindowsOptionalFeature -Online -FeatureName NetFx4Extended-ASPNET45
+
+# Download the files for our web application.
+Set-Location -Path C:\inetpub\wwwroot
+
+$shell_app = new-object -com shell.application
+(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/ahmadzahoory/awssysops/master/lab-04-code.zip", (Get-Location).Path + "\lab-04-code.zip")
+
+$zipfile = $shell_app.Namespace((Get-Location).Path + "\lab-04-code.zip")
+$destination = $shell_app.Namespace((Get-Location).Path)
+$destination.copyHere($zipfile.items())
+
+# Create the web app in IIS
+New-WebApplication -Name webapp -PhysicalPath c:\inetpub\wwwroot\vm-website -Site "Default Web Site" -force
+
+# Create directory
+mkdir c:\stress
+
+# Download stress file from Github
+Invoke-WebRequest https://raw.githubusercontent.com/ahmadzahoory/awssysops/master/stress.zip -OutFile c:\stress\stress.zip
+
+# Unzip .zip file
+Expand-Archive c:\stress\stress.zip -DestinationPath c:\stress
+
+#End
